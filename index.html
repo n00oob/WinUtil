@@ -1,0 +1,879 @@
+Add-Type -AssemblyName PresentationFramework
+
+[xml]$xaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="File Patcher" Height="600" Width="650"
+        Background="#0F172A" WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize" WindowStyle="None">
+    
+    <Grid>
+        <!-- Custom Title Bar -->
+        <Border Height="40" VerticalAlignment="Top" Background="#1E293B">
+            <Grid>
+                <TextBlock Text="File Patcher" 
+                          Foreground="White" 
+                          FontSize="14" 
+                          FontWeight="SemiBold" 
+                          VerticalAlignment="Center" 
+                          Margin="15,0,0,0"/>
+                
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Name="SettingsButton" 
+                           Content="Settings" 
+                           Width="80" 
+                           Height="40" 
+                           Background="Transparent" 
+                           Foreground="White" 
+                           BorderThickness="0" 
+                           FontSize="12" 
+                           Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center" 
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#334155"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    
+                    <Button Name="MinimizeButton" 
+                           Content="_" 
+                           Width="46" 
+                           Height="40" 
+                           Background="Transparent" 
+                           Foreground="White" 
+                           BorderThickness="0" 
+                           FontSize="16" 
+                           Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center" 
+                                                                VerticalAlignment="Center" 
+                                                                Margin="0,-8,0,0"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#334155"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    
+                    <Button Name="CloseButton" 
+                           Content="X" 
+                           Width="46" 
+                           Height="40" 
+                           Background="Transparent" 
+                           Foreground="White" 
+                           BorderThickness="0" 
+                           FontSize="16" 
+                           Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center" 
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#EF4444"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- Main Content Panel -->
+        <Grid Name="MainPanel" Background="#0F172A" Margin="0,40,0,0" Visibility="Visible">
+            <!-- Header -->
+            <TextBlock Text="File Patcher" 
+                      FontSize="28" FontWeight="Bold" 
+                      Foreground="White" 
+                      Margin="40,30,0,0" 
+                      VerticalAlignment="Top"/>
+            
+            <TextBlock Text="Add padding to modify file hashes without breaking functionality" 
+                      FontSize="12" 
+                      Foreground="#94A3B8" 
+                      Margin="40,75,0,0" 
+                      VerticalAlignment="Top"/>
+            
+            <!-- Patch Mode Selection -->
+            <Border Background="#1E293B" 
+                   CornerRadius="10" 
+                   Margin="40,110,40,0" 
+                   Height="70" 
+                   VerticalAlignment="Top">
+                <Grid>
+                    <TextBlock Text="Patch Mode" 
+                              FontSize="13" FontWeight="Bold" 
+                              Foreground="#CBD5E1" 
+                              Margin="20,15,0,0" 
+                              VerticalAlignment="Top"/>
+                    
+                    <StackPanel Orientation="Horizontal" Margin="20,38,20,0" VerticalAlignment="Top">
+                        <CheckBox Name="HashPatchToggle" 
+                                 Content="Hash Patching" 
+                                 Foreground="White" 
+                                 FontSize="12"
+                                 IsChecked="True"
+                                 Margin="0,0,30,0">
+                            <CheckBox.Style>
+                                <Style TargetType="CheckBox">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="CheckBox">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Name="Border" 
+                                                           Width="20" 
+                                                           Height="20" 
+                                                           Background="#334155" 
+                                                           CornerRadius="4" 
+                                                           BorderThickness="0"
+                                                           Margin="0,0,8,0">
+                                                        <TextBlock Name="CheckMark" 
+                                                                  Text="+" 
+                                                                  Foreground="White" 
+                                                                  FontSize="16" 
+                                                                  FontWeight="Bold"
+                                                                  HorizontalAlignment="Center" 
+                                                                  VerticalAlignment="Center"
+                                                                  Visibility="Collapsed"
+                                                                  Margin="0,-2,0,0"/>
+                                                    </Border>
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="Border" Property="Background" Value="#22C55E"/>
+                                                        <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Border" Property="Background" Value="#475569"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </CheckBox.Style>
+                        </CheckBox>
+                        
+                        <CheckBox Name="SignaturePatchToggle" 
+                                 Content="Signature Patching" 
+                                 Foreground="White" 
+                                 FontSize="12"
+                                 IsChecked="False">
+                            <CheckBox.Style>
+                                <Style TargetType="CheckBox">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="CheckBox">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Name="Border" 
+                                                           Width="20" 
+                                                           Height="20" 
+                                                           Background="#334155" 
+                                                           CornerRadius="4" 
+                                                           BorderThickness="0"
+                                                           Margin="0,0,8,0">
+                                                        <TextBlock Name="CheckMark" 
+                                                                  Text="+" 
+                                                                  Foreground="White" 
+                                                                  FontSize="16" 
+                                                                  FontWeight="Bold"
+                                                                  HorizontalAlignment="Center" 
+                                                                  VerticalAlignment="Center"
+                                                                  Visibility="Collapsed"
+                                                                  Margin="0,-2,0,0"/>
+                                                    </Border>
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="Border" Property="Background" Value="#3B82F6"/>
+                                                        <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Border" Property="Background" Value="#475569"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </CheckBox.Style>
+                        </CheckBox>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- File Selection Panel -->
+            <Border Background="#1E293B" 
+                   CornerRadius="10" 
+                   Margin="40,195,40,0" 
+                   Height="100" 
+                   VerticalAlignment="Top">
+                <Grid>
+                    <TextBlock Text="File Path" 
+                              FontSize="13" FontWeight="Bold" 
+                              Foreground="#CBD5E1" 
+                              Margin="20,15,0,0" 
+                              VerticalAlignment="Top"/>
+                    
+                    <TextBox Name="FilePathBox" 
+                            Background="#334155" 
+                            Foreground="White" 
+                            BorderThickness="0" 
+                            FontSize="12" 
+                            Padding="10" 
+                            Margin="20,45,130,20" 
+                            VerticalAlignment="Top" 
+                            Height="35"/>
+                    
+                    <Button Name="BrowseButton" 
+                           Content="Browse" 
+                           Background="#3B82F6" 
+                           Foreground="White" 
+                           BorderThickness="0" 
+                           FontSize="12" 
+                           FontWeight="Bold" 
+                           Width="100" 
+                           Height="35" 
+                           Margin="0,45,20,0" 
+                           HorizontalAlignment="Right" 
+                           VerticalAlignment="Top" 
+                           Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" 
+                                                   CornerRadius="6" 
+                                                   BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center" 
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#2563EB"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+            </Border>
+            
+            <!-- Patch Buttons -->
+            <Grid Margin="40,315,40,0" Height="55" VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <Button Name="PatchFileButton" 
+                       Content="Patch File" 
+                       Background="#22C55E" 
+                       Foreground="White" 
+                       BorderThickness="0" 
+                       FontSize="16" 
+                       FontWeight="Bold" 
+                       Grid.Column="0"
+                       Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" 
+                                               CornerRadius="8" 
+                                               BorderThickness="0">
+                                            <ContentPresenter HorizontalAlignment="Center" 
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#16A34A"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                
+                <Button Name="PatchDirectoryButton" 
+                       Content="Patch Directory" 
+                       Background="#3B82F6" 
+                       Foreground="White" 
+                       BorderThickness="0" 
+                       FontSize="16" 
+                       FontWeight="Bold" 
+                       Grid.Column="2"
+                       Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" 
+                                               CornerRadius="8" 
+                                               BorderThickness="0">
+                                            <ContentPresenter HorizontalAlignment="Center" 
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#2563EB"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+            
+            <!-- Console Output -->
+            <TextBlock Text="Console Output" 
+                      FontSize="13" FontWeight="Bold" 
+                      Foreground="#CBD5E1" 
+                      Margin="40,390,0,0" 
+                      VerticalAlignment="Top"/>
+            
+            <Border Background="#1E293B" 
+                   CornerRadius="8" 
+                   Margin="40,420,40,20">
+                <RichTextBox Name="ConsoleBox" 
+                        Background="Transparent" 
+                        BorderThickness="0" 
+                        FontFamily="Consolas" 
+                        FontSize="11" 
+                        Padding="10" 
+                        IsReadOnly="True" 
+                        VerticalScrollBarVisibility="Hidden"/>
+            </Border>
+        </Grid>
+        
+        <!-- Settings Panel -->
+        <Grid Name="SettingsPanel" Background="#0F172A" Margin="0,40,0,0" Visibility="Collapsed">
+            <!-- Header -->
+            <TextBlock Text="Settings" 
+                      FontSize="28" FontWeight="Bold" 
+                      Foreground="White" 
+                      Margin="40,30,0,0" 
+                      VerticalAlignment="Top"/>
+            
+            <TextBlock Text="Configure external tools and options" 
+                      FontSize="12" 
+                      Foreground="#94A3B8" 
+                      Margin="40,75,0,0" 
+                      VerticalAlignment="Top"/>
+            
+            <!-- UnSign Tool Path -->
+            <Border Background="#1E293B" 
+                   CornerRadius="10" 
+                   Margin="40,120,40,0" 
+                   Height="100" 
+                   VerticalAlignment="Top">
+                <Grid>
+                    <TextBlock Text="UnSign Tool Path" 
+                              FontSize="13" FontWeight="Bold" 
+                              Foreground="#CBD5E1" 
+                              Margin="20,15,0,0" 
+                              VerticalAlignment="Top"/>
+                    
+                    <TextBox Name="UnsignPathBox" 
+                            Background="#334155" 
+                            Foreground="White" 
+                            BorderThickness="0" 
+                            FontSize="12" 
+                            Padding="10" 
+                            Margin="20,45,130,20" 
+                            VerticalAlignment="Top" 
+                            Height="35"/>
+                    
+                    <Button Name="BrowseUnsignButton" 
+                           Content="Browse" 
+                           Background="#3B82F6" 
+                           Foreground="White" 
+                           BorderThickness="0" 
+                           FontSize="12" 
+                           FontWeight="Bold" 
+                           Width="100" 
+                           Height="35" 
+                           Margin="0,45,20,0" 
+                           HorizontalAlignment="Right" 
+                           VerticalAlignment="Top" 
+                           Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" 
+                                                   CornerRadius="6" 
+                                                   BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center" 
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#2563EB"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+            </Border>
+            
+            <!-- Save Settings Button -->
+            <Button Name="SaveSettingsButton" 
+                   Content="Save Settings" 
+                   Background="#22C55E" 
+                   Foreground="White" 
+                   BorderThickness="0" 
+                   FontSize="16" 
+                   FontWeight="Bold" 
+                   Width="200"
+                   Height="50"
+                   Margin="40,240,0,0"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                           CornerRadius="8" 
+                                           BorderThickness="0">
+                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                        VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#16A34A"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            
+            <!-- Back Button -->
+            <Button Name="BackButton" 
+                   Content="Back" 
+                   Background="#3B82F6" 
+                   Foreground="White" 
+                   BorderThickness="0" 
+                   FontSize="16" 
+                   FontWeight="Bold" 
+                   Width="200"
+                   Height="50"
+                   Margin="260,240,0,0"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                           CornerRadius="8" 
+                                           BorderThickness="0">
+                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                        VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#2563EB"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            
+            <!-- Status Text -->
+            <TextBlock Name="SettingsStatusText"
+                      Text="" 
+                      FontSize="12" 
+                      Foreground="#4ADE80" 
+                      Margin="40,310,40,0" 
+                      VerticalAlignment="Top"/>
+        </Grid>
+    </Grid>
+</Window>
+"@
+
+# Load XAML
+$reader = New-Object System.Xml.XmlNodeReader $xaml
+$window = [Windows.Markup.XamlReader]::Load($reader)
+
+# Get controls
+$filePathBox = $window.FindName("FilePathBox")
+$browseButton = $window.FindName("BrowseButton")
+$patchFileButton = $window.FindName("PatchFileButton")
+$patchDirectoryButton = $window.FindName("PatchDirectoryButton")
+$consoleBox = $window.FindName("ConsoleBox")
+$minimizeButton = $window.FindName("MinimizeButton")
+$closeButton = $window.FindName("CloseButton")
+$settingsButton = $window.FindName("SettingsButton")
+$hashPatchToggle = $window.FindName("HashPatchToggle")
+$signaturePatchToggle = $window.FindName("SignaturePatchToggle")
+$mainPanel = $window.FindName("MainPanel")
+$settingsPanel = $window.FindName("SettingsPanel")
+$unsignPathBox = $window.FindName("UnsignPathBox")
+$browseUnsignButton = $window.FindName("BrowseUnsignButton")
+$saveSettingsButton = $window.FindName("SaveSettingsButton")
+$backButton = $window.FindName("BackButton")
+$settingsStatusText = $window.FindName("SettingsStatusText")
+
+# Settings file path
+$settingsFile = "$env:APPDATA\FilePatcher\settings.json"
+
+# Load settings
+function Load-Settings {
+    if (Test-Path $settingsFile) {
+        try {
+            $settings = Get-Content $settingsFile | ConvertFrom-Json
+            $unsignPathBox.Text = $settings.UnsignPath
+        } catch {
+            # Ignore errors, use defaults
+        }
+    }
+}
+
+# Save settings
+function Save-Settings {
+    $settings = @{
+        UnsignPath = $unsignPathBox.Text
+    }
+    
+    $settingsDir = Split-Path $settingsFile -Parent
+    if (-not (Test-Path $settingsDir)) {
+        New-Item -ItemType Directory -Path $settingsDir -Force | Out-Null
+    }
+    
+    $settings | ConvertTo-Json | Set-Content $settingsFile
+}
+
+# Load settings on startup
+Load-Settings
+
+# Function to append colored text
+function Write-Console {
+    param(
+        [string]$Text,
+        [string]$Color = "#94A3B8"  # Default gray
+    )
+    
+    $paragraph = New-Object System.Windows.Documents.Paragraph
+    $paragraph.Margin = New-Object System.Windows.Thickness(0)
+    $run = New-Object System.Windows.Documents.Run
+    $run.Text = $Text
+    $run.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString($Color)
+    $paragraph.Inlines.Add($run)
+    $consoleBox.Document.Blocks.Add($paragraph)
+}
+
+# Make window draggable
+$window.Add_MouseLeftButtonDown({
+    $window.DragMove()
+})
+
+# Settings button
+$settingsButton.Add_Click({
+    $mainPanel.Visibility = 'Collapsed'
+    $settingsPanel.Visibility = 'Visible'
+})
+
+# Back button
+$backButton.Add_Click({
+    $settingsPanel.Visibility = 'Collapsed'
+    $mainPanel.Visibility = 'Visible'
+})
+
+# Save settings button
+$saveSettingsButton.Add_Click({
+    Save-Settings
+    $settingsStatusText.Text = "Settings saved successfully!"
+    $settingsStatusText.Foreground = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#4ADE80")
+})
+
+# Browse unsign button
+$browseUnsignButton.Add_Click({
+    $openFileDialog = New-Object Microsoft.Win32.OpenFileDialog
+    $openFileDialog.Filter = "Executable files (*.exe)|*.exe"
+    $openFileDialog.Title = "Select unsign.exe"
+    if ($openFileDialog.ShowDialog()) {
+        $unsignPathBox.Text = $openFileDialog.FileName
+    }
+})
+
+# Minimize button
+$minimizeButton.Add_Click({
+    $window.WindowState = 'Minimized'
+})
+
+# Close button
+$closeButton.Add_Click({
+    $window.Close()
+})
+
+# Browse button click
+$browseButton.Add_Click({
+    $openFileDialog = New-Object Microsoft.Win32.OpenFileDialog
+    $openFileDialog.Filter = "All files (*.*)|*.*"
+    if ($openFileDialog.ShowDialog()) {
+        $filePathBox.Text = $openFileDialog.FileName
+    }
+})
+
+# Function to run unsign on a file
+function Run-Unsign {
+    param(
+        [string]$FilePath
+    )
+    
+    $unsignPath = $unsignPathBox.Text
+    
+    if ([string]::IsNullOrWhiteSpace($unsignPath) -or -not (Test-Path $unsignPath)) {
+        Write-Console "ERROR: " "#EF4444"
+        Write-Console "UnSign tool path not configured. Go to Settings.`n" "#94A3B8"
+        return $false
+    }
+    
+    try {
+        $output = & $unsignPath /NoLogo /NoCertPrint $FilePath 2>&1
+        return $true
+    } catch {
+        Write-Console "ERROR: " "#EF4444"
+        Write-Console "Failed to run unsign: $($_.Exception.Message)`n" "#94A3B8"
+        return $false
+    }
+}
+
+# Function to patch a single file
+function Patch-SingleFile {
+    param(
+        [string]$FilePath,
+        [bool]$DoHashPatch,
+        [bool]$DoSignaturePatch
+    )
+    
+    $success = $true
+    
+    try {
+        if ($DoSignaturePatch) {
+            Write-Console "Removing signature... " "#94A3B8"
+            $result = Run-Unsign -FilePath $FilePath
+            if ($result) {
+                Write-Console "Done`n" "#4ADE80"
+            } else {
+                $success = $false
+            }
+        }
+        
+        if ($DoHashPatch -and $success) {
+            Write-Console "Adding padding... " "#94A3B8"
+            $bytes = [System.IO.File]::ReadAllBytes($FilePath)
+            $newBytes = $bytes + [byte[]]@(0x00, 0x00, 0x00, 0x00)
+            [System.IO.File]::WriteAllBytes($FilePath, $newBytes)
+            Write-Console "Done`n" "#4ADE80"
+        }
+        
+    } catch {
+        Write-Console "Failed`n" "#EF4444"
+        Write-Console "ERROR: $($_.Exception.Message)`n" "#EF4444"
+        $success = $false
+    }
+    
+    return $success
+}
+
+# Patch File button click
+$patchFileButton.Add_Click({
+    try {
+        $filePath = $filePathBox.Text
+        
+        if ([string]::IsNullOrWhiteSpace($filePath)) {
+            Write-Console "ERROR: " "#EF4444"
+            Write-Console "Please select a file first!`n`n" "#94A3B8"
+            return
+        }
+        
+        if (-not (Test-Path $filePath)) {
+            Write-Console "ERROR: " "#EF4444"
+            Write-Console "File not found!`n`n" "#94A3B8"
+            return
+        }
+        
+        $doHashPatch = $hashPatchToggle.IsChecked
+        $doSigPatch = $signaturePatchToggle.IsChecked
+        
+        if (-not $doHashPatch -and -not $doSigPatch) {
+            Write-Console "ERROR: " "#EF4444"
+            Write-Console "Please select at least one patch mode!`n`n" "#94A3B8"
+            return
+        }
+        
+        Write-Console "Patching file: " "#94A3B8"
+        Write-Console "$filePath`n" "#64748B"
+        
+        if ($doHashPatch) {
+            # Get original hash
+            Write-Console "Reading original hash... " "#94A3B8"
+            $originalHash = Get-FileHash $filePath -Algorithm SHA256
+            Write-Console "Done`n" "#4ADE80"
+            Write-Console "Original Hash: $($originalHash.Hash)`n" "#64748B"
+        }
+        
+        # Patch the file
+        $success = Patch-SingleFile -FilePath $filePath -DoHashPatch $doHashPatch -DoSignaturePatch $doSigPatch
+        
+        if ($doHashPatch -and $success) {
+            # Get new hash
+            $newHash = Get-FileHash $filePath -Algorithm SHA256
+            Write-Console "New Hash: $($newHash.Hash)`n" "#64748B"
+        }
+        
+        if ($success) {
+            Write-Console "SUCCESS: " "#4ADE80"
+            Write-Console "File patched successfully!`n`n" "#94A3B8"
+        }
+        
+    } catch {
+        Write-Console "ERROR: " "#EF4444"
+        Write-Console "$($_.Exception.Message)`n`n" "#94A3B8"
+    }
+})
+
+# Patch Directory button click
+# Patch Directory button click
+$patchDirectoryButton.Add_Click({
+    try {
+        $filePath = $filePathBox.Text
+        
+        if ([string]::IsNullOrWhiteSpace($filePath)) {
+            Write-Console "ERROR: " "#EF4444"
+            Write-Console "Please select a file first to determine directory!`n`n" "#94A3B8"
+            return
+        }
+        
+        if (-not (Test-Path $filePath)) {
+            Write-Console "ERROR: " "#EF4444"
+            Write-Console "File not found!`n`n" "#94A3B8"
+            return
+        }
+        
+        $doHashPatch = $hashPatchToggle.IsChecked
+        $doSigPatch = $signaturePatchToggle.IsChecked
+        
+        if (-not $doHashPatch -and -not $doSigPatch) {
+            Write-Console "ERROR: " "#EF4444"
+            Write-Console "Please select at least one patch mode!`n`n" "#94A3B8"
+            return
+        }
+        
+        # Get directory from file path
+        $directory = Split-Path $filePath -Parent
+        Write-Console "Scanning directory recursively: " "#94A3B8"
+        Write-Console "$directory`n" "#64748B"
+        
+        # Find all .dll and .exe files recursively
+        $files = @(Get-ChildItem -Path $directory -Filter *.dll -File -Recurse)
+        $files += @(Get-ChildItem -Path $directory -Filter *.exe -File -Recurse)
+        
+        if ($files.Count -eq 0) {
+            Write-Console "No .dll or .exe files found in directory or subdirectories`n`n" "#94A3B8"
+            return
+        }
+        
+        Write-Console "Found $($files.Count) file(s) to patch`n`n" "#94A3B8"
+        
+        $successCount = 0
+        $failCount = 0
+        
+        foreach ($file in $files) {
+            # Show relative path
+            $relativePath = $file.FullName.Replace($directory, ".")
+            Write-Console "Patching: " "#94A3B8"
+            Write-Console "$relativePath... " "#64748B"
+            
+            $success = Patch-SingleFile -FilePath $file.FullName -DoHashPatch $doHashPatch -DoSignaturePatch $doSigPatch
+            
+            if ($success) {
+                Write-Console "SUCCESS`n" "#4ADE80"
+                $successCount++
+            } else {
+                $failCount++
+            }
+        }
+        
+        Write-Console "`nCompleted: " "#94A3B8"
+        Write-Console "$successCount succeeded" "#4ADE80"
+        Write-Console ", " "#94A3B8"
+        if ($failCount -gt 0) {
+            Write-Console "$failCount failed`n`n" "#EF4444"
+        } else {
+            Write-Console "0 failed`n`n" "#94A3B8"
+        }
+        
+    } catch {
+        Write-Console "ERROR: " "#EF4444"
+        Write-Console "$($_.Exception.Message)`n`n" "#94A3B8"
+    }
+})
+
+# Show window
+$window.ShowDialog() | Out-Null
