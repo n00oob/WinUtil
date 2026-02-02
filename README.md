@@ -1,2 +1,2 @@
 # WinUtil
-This is a utility used in schools for fun stuff
+This is a utility used for fun stuff and for educational reasons only
